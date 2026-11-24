@@ -1,8 +1,8 @@
 // Bump the cache name whenever a shell asset changes.
-const CACHE = 'little-mandarin-shell-v2';
+const CACHE = 'little-mandarin-shell-v3';
 const SHELL = ['./', './index.html', './styles.css', './app.js', './state.js', './data.js', './resources.json', './manifest.webmanifest', './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png'];
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL.map(asset => new Request(new URL(asset, self.registration.scope), {cache: 'reload'})))));
   // A new worker waits until existing app tabs close, avoiding a mixed app version.
 });
 self.addEventListener('activate', event => {
