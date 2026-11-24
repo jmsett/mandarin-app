@@ -1,1 +1,1 @@
-# chinese-app
+# mandarin-app
