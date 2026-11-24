@@ -677,5 +677,37 @@ try {
 render();
 if (!loadError) save();
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => toast('Offline setup failed. The app still works online; reload to try again.'));
+  let registration, applyingUpdate = false, hadController = Boolean(navigator.serviceWorker.controller);
+  let lastUpdateCheck = 0;
+  const showUpdate = () => { $('#update-app').hidden = false; };
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (applyingUpdate) { location.reload(); return; }
+    if (hadController) showUpdate();
+    hadController = true;
+  });
+  $('#update-app').onclick = () => {
+    if (state.timer) accrueTimer(state);
+    if (!loadError && !save()) return;
+    stopRecording();
+    applyingUpdate = true;
+    if (registration?.waiting) registration.waiting.postMessage({type: 'SKIP_WAITING'});
+    else location.reload();
+  };
+  const checkForUpdate = () => {
+    if (!registration || !navigator.onLine || Date.now() - lastUpdateCheck < 60000) return;
+    lastUpdateCheck = Date.now();
+    registration.update().catch(() => {});
+  };
+  navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'}).then(result => {
+    registration = result;
+    if (registration.waiting) showUpdate();
+    checkForUpdate();
+  }).catch(() => toast('Offline setup failed. Reload to try again.'));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+  window.addEventListener('online', checkForUpdate);
+}
+const recoveryUrl = new URL(location.href);
+if (recoveryUrl.searchParams.get('update') === '1') {
+  recoveryUrl.searchParams.delete('update');
+  history.replaceState(null, '', recoveryUrl.href);
 }

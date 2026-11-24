@@ -84,7 +84,7 @@ nav a[aria-current="page"] { color: var(--accent); background: var(--accent-soft
 .connection { display: flex; align-items: center; gap: 6px; font-size: 11px; }
 .connection i { width: 5px; height: 5px; border-radius: 50%; background: var(--secondary); }
 #theme-picker { width: 132px; margin: 0; min-height: 40px; padding: 8px 10px; background: var(--bg); font-size: 12px; border-color: var(--border); }
-#install { min-height: 40px; padding: 8px 12px; }
+#install, #update-app { min-height: 40px; padding: 8px 12px; }
 .icon-button { min-width: 44px; min-height: 44px; border: 0; background: none; display: inline-grid; place-items: center; padding: 8px; font-size: 26px; color: var(--muted); border-radius: 7px; flex-shrink: 0; }
 .icon-button:hover { color: var(--text); background: var(--surface-hover); }
 main { max-width: 1200px; padding: 36px; margin: auto; min-height: calc(100vh - 125px); }
@@ -279,7 +279,7 @@ audio { width: 100%; margin-top: 16px; }
   .topbar-right { gap: 8px; }
   .connection { display: none; }
   #theme-picker { width: 112px; font-size: 12px; padding: 8px; }
-  #install { padding: 8px; font-size: 11px; }
+  #install, #update-app { padding: 8px; font-size: 11px; }
   main { padding: 26px 18px; min-height: calc(100dvh - 190px); }
   .page-intro { margin-bottom: 24px; }
   h1 { font-size: 30px; }
@@ -326,3 +326,7 @@ audio { width: 100%; margin-top: 16px; }
   .stat { padding-inline: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+
+/* Show update controls only when a complete new version is ready. */
+.topbar:has(#update-app:not([hidden])) #install { display: none; }
+@media (max-width: 620px) { .topbar:has(#update-app:not([hidden])) #breadcrumb { display: none; } }

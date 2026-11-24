@@ -90,7 +90,9 @@ If a first workflow run fails because Pages is not enabled, set the source as ab
 
 Visit once online and let the service worker install. The application shell, original lessons, phrase practice, library metadata, and progress views then work offline. External websites, videos, and podcasts need internet; a device speech voice might also need downloading. This app does not download third-party lessons or native audio for offline playback.
 
-A release must change the `CACHE` version in `sw.js` when app assets change. A new worker waits for existing app tabs to close, then activates and clears only older `little-mandarin-shell-*` caches. Close all app windows and reopen after an update. Progress is separate from the cache, in localStorage.
+A release must change the `CACHE` version in `sw.js` when app assets change. Installation refreshes and caches the complete shell before activating it. An already-open page keeps its current view and shows **Update** when the new version takes control. Clicking Update logs any running timer and reloads the app. Update checks bypass the browser’s script cache and repeat when returning to the app or reconnecting (at most once per minute). Only older `little-mandarin-shell-*` caches are removed; progress remains in localStorage.
+
+For older installs without an Update button, open <https://jmsett.github.io/mandarin-app/?update=1> while online. This explicitly reloads that tab into the new shell after activation, even if other app tabs are open. It does not clear browser storage or reset progress.
 
 ## Data and limitations
 
@@ -107,6 +109,7 @@ python3 -m venv /tmp/mandarin-qa-env
 /tmp/mandarin-qa-env/bin/pip install playwright
 /tmp/mandarin-qa-env/bin/playwright install chromium
 /tmp/mandarin-qa-env/bin/python tests/browser_test.py
+/tmp/mandarin-qa-env/bin/python tests/update_test.py
 ```
 
-The suite starts its own temporary HTTP server and checks core learner flows, scheduler/data rules, backup handling, microphone cleanup, responsive layouts, and offline use at root and `/mandarin-app/` paths. No development dependencies are shipped.
+The suite starts its own temporary HTTP server and checks core learner flows, scheduler/data rules, backup handling, microphone cleanup, responsive layouts, and offline use at root and `/mandarin-app/` paths. The update suite also reproduces recovery from a legacy cache while a second tab stays open and checks that ordinary updates preserve unsaved form fields until the user chooses to reload. No development dependencies are shipped.
