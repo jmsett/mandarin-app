@@ -10,7 +10,8 @@ export function newState() {
     version: 1,
     profile: {
       name: '',
-      minutes: 30
+      minutes: 30,
+      theme: 'dragon'
     },
     days: {},
     completed: [],
@@ -26,6 +27,7 @@ export function newState() {
 const finite = (x, max = Number.MAX_SAFE_INTEGER) => typeof x === 'number' && Number.isFinite(x) && x >= 0 && x <= max;
 export function validateState(s) {
   if (!s || s.version !== 1 || !s.profile || typeof s.profile.name !== 'string' || s.profile.name.length > 40 || ![15, 30, 60].includes(s.profile.minutes) || !Array.isArray(s.completed) || s.completed.length > 8 || !s.completed.every(x => ['hello', 'repair', 'courtesy', 'drinks', 'numbers', 'where', 'about', 'connect'].includes(x)) || new Set(s.completed).size !== s.completed.length) throw Error('This file is not a supported Little Mandarin backup.');
+  if (s.profile.theme !== undefined && !['dragon', 'cyberpunk', 'synthwave'].includes(s.profile.theme)) throw Error('Invalid theme in backup.');
   if (!Array.isArray(s.cards) || s.cards.length > 3000 || !s.cards.every(c => c && ['id', 'hanzi', 'pinyin', 'english', 'source'].every(k => typeof c[k] === 'string' && c[k].length > 0 && c[k].length <= 500) && finite(c.due, 1e14) && finite(c.interval, 365) && finite(c.reviews, 1e7)) || new Set(s.cards.map(c => c.id)).size !== s.cards.length) throw Error('Invalid phrase data in backup.');
   if (!s.days || typeof s.days !== 'object' || Array.isArray(s.days) || Object.keys(s.days).length > 20000 || !Object.entries(s.days).every(([k, d]) => /^\d{4}-\d{2}-\d{2}$/.test(k) && d && Array.isArray(d.done) && d.done.length <= 4 && d.done.every(x => ['sound', 'learn', 'review', 'speak'].includes(x)) && new Set(d.done).size === d.done.length && finite(d.seconds, 86400) && finite(d.reviews, 1e7))) throw Error('Invalid practice history in backup.');
   if (s.timer !== null && (!s.timer || !finite(s.timer.started, 1e14) || !['sound', 'learn', 'review', 'speak'].includes(s.timer.task))) throw Error('Invalid timer in backup.');

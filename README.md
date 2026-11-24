@@ -1,6 +1,6 @@
 # Little Mandarin
 
-A buildless, offline-ready beginner Mandarin PWA. Plain HTML, CSS, and JavaScript; no package installation, account, API key, tracking, or backend.
+A minimal, buildless, offline-ready beginner Mandarin PWA. Plain HTML, CSS, and JavaScript; no package installation, account, API key, tracking, or backend.
 
 The recommended approach is a **hybrid**: use this app to make practice consistent and personal, and use established courses, native recordings, dictionaries, and human feedback for their specialist strengths. This is a practical starter companion, not a complete Mandarin curriculum or a proficiency assessment.
 
@@ -22,10 +22,24 @@ Open <http://localhost:8080>. JavaScript modules and service workers need HTTP; 
 - Optional microphone recording for playback and self-comparison. Recordings remain in memory, stop after 60 seconds, and are discarded when the lesson closes; they are not uploaded.
 - Device Mandarin text-to-speech when a Chinese voice is installed. Native audio is linked externally; **no automated pronunciation scoring**.
 - A personal phrase collection with simple spaced review: Again = 10 minutes; Got it = at least 1 day; Easy = at least 3 days; successful intervals grow up to 365 days. This is a transparent starter scheduler, not FSRS or Anki sync.
-- Timer-based practice logs, manual entries for outside study, local-date streaks, and progress history. Timer sessions are capped at two hours and split across local midnight.
+- Timer-based practice logs, manual entries for outside study, progress history, and local-date activity tracking. Timer sessions are capped at two hours and split across local midnight.
 - JSON backup/restore with validation and an explicit replacement confirmation; three-column TSV export for Anki. Create/map Chinese, Pinyin, and English fields when importing.
 - A searchable library with all 26 resources from the supplied video and four additional recommendations.
 - Install manifest, standard and maskable icons, and a scoped service worker caching only first-party app assets.
+
+## Interface and themes
+
+The interface uses task labels and instructional copy, without slogans or motivational messages. One shared layout supports three saved palettes:
+
+| Theme | Palette |
+| --- | --- |
+| Dragon (default) | Black, gold, vermilion; inspired by *Enter the Dragon*. |
+| Cyberpunk | Graphite, yellow, cyan. |
+| Synthwave | Indigo, pink, violet. |
+
+Select a theme in the header or Preferences. The choice is saved in the existing local profile and included in JSON backups. Backups from before themes were added remain compatible and use Dragon by default. The app shell and icons use Dragon as their install-time default; browser chrome follows the selected palette while running.
+
+The requested [`design-mobile-apps` skill](https://github.com/designed-by-ai/skills/tree/main/skills/design-mobile-apps) was installed with `npx skills add https://github.com/designed-by-ai/skills --skill design-mobile-apps --global --agent codex --yes`. Its shared-token, navigation, touch-target, inset, and state-preservation guidance informed this pass. At the user’s request the implementation uses **local styling without Sleek**; no Sleek-generated screens or authenticated design runs were used. The application still ships without npm dependencies.
 
 ## A practical beginner routine
 

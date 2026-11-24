@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "Little Mandarin — A little, every day",
+  "name": "Little Mandarin",
   "short_name": "Little Mandarin",
-  "description": "Your personal beginner Mandarin practice companion.",
+  "description": "Mandarin lessons, phrase review, and daily practice.",
   "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f7f8f2",
-  "theme_color": "#174d3c",
+  "background_color": "#141310",
+  "theme_color": "#141310",
   "icons": [
     { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

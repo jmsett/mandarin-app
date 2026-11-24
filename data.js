@@ -41,7 +41,7 @@ export const lessons = [{
 }, {
   id: 'courtesy',
   week: 2,
-  title: 'Everyday kindness',
+  title: 'Courtesy',
   goal: 'Thank someone and make a small apology.',
   note: 'The second syllables in 谢谢 and 客气 are often unstressed. 不 changes from bù to bú before a fourth tone, as in 不客气.',
   phrases: [
@@ -120,7 +120,7 @@ export const lessons = [{
 }, {
   id: 'about',
   week: 4,
-  title: 'A little about you',
+  title: 'About you',
   goal: 'Say where you are from and what you are learning.',
   note: 'Replace 德国 with your own country. 我在学… describes something you are currently learning.',
   phrases: [
@@ -139,9 +139,9 @@ export const lessons = [{
 }, {
   id: 'connect',
   week: 4,
-  title: 'Your first small conversation',
+  title: 'Conversation',
   goal: 'Put your phrases together without a script.',
-  note: 'Fluent use of a few phrases is useful progress. Keep listening, and ask a patient speaker for specific pronunciation feedback.',
+  note: 'Ask a patient speaker for specific pronunciation feedback.',
   phrases: [
     ['你喜欢喝茶吗？', 'Nǐ xǐhuan hē chá ma?', 'Do you like drinking tea?'],
     ['我喜欢喝茶。', 'Wǒ xǐhuan hē chá.', 'I like drinking tea.'],

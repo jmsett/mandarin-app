@@ -34,7 +34,7 @@ def run():
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(BASE)
-        expect(page.locator('h1')).to_have_text('A little better, every day.')
+        expect(page.locator('h1')).to_have_text('Today')
         page.evaluate('navigator.serviceWorker.ready')
         page.wait_for_function('navigator.serviceWorker.controller !== null')
         cdp = context.new_cdp_session(page)
@@ -42,6 +42,16 @@ def run():
         assert not cdp.send('Page.getInstallabilityErrors')['installabilityErrors']
         page.screenshot(path='/tmp/mandarin-desktop.png', full_page=True)
         assert len(stored(page)['cards']) == 4
+        assert page.locator('html').get_attribute('data-theme') == 'dragon'
+        for theme in ['cyberpunk', 'synthwave', 'dragon']:
+            page.locator('#theme-picker').select_option(theme)
+            assert stored(page)['profile']['theme'] == theme
+            page.reload()
+            expect(page.locator('#theme-picker')).to_have_value(theme)
+            assert page.locator('html').get_attribute('data-theme') == theme
+            assert page.locator('meta[name="theme-color"]').get_attribute('content') == page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()")
+        assert not page.locator('.hero-art, .daily-note, .tutor-note, .bottom-banner').count()
+
         page.locator('[data-lesson="hello"]').click()
         expect(page.locator('#lesson-dialog')).to_be_visible()
         page.clock.install()
@@ -84,11 +94,13 @@ def run():
         page.locator('#profile-settings').click()
         page.locator('#name').fill('<img src=x onerror=alert(1)>')
         page.locator('#minutes').select_option('15')
+        page.locator('input[name="theme"][value="synthwave"]').check()
         page.locator('#settings-form button[type="submit"]').click()
         assert stored(page)['profile']['minutes'] == 15
+        expect(page.locator('#theme-picker')).to_have_value('synthwave')
         page.goto(BASE)
         assert page.locator('h1 img').count() == 0
-        expect(page.locator('h1')).to_contain_text('<img src=x')
+        assert stored(page)['profile']['name'] == '<img src=x onerror=alert(1)>'
         page.locator('#profile-settings').click()
         with page.expect_download() as dl:
             page.locator('#export').click()
@@ -123,7 +135,8 @@ def run():
           check(m.schedule(c,'good',now).due===now+86400000,'good');
           check(m.schedule({...c,interval:300},'easy',now).interval===365,'cap');
           check(m.validateState(s)===s,'valid state');
-          for(const modify of [s=>s.cards.push({...s.cards[0]}),s=>s.cards[0].due=-1,s=>s.profile.minutes=17,s=>s.days={'oops':{}},s=>s.completed=['fake'],s=>s.timer={started:NaN,task:'sound'}]){
+          const legacy=structuredClone(s);delete legacy.profile.theme;check(m.validateState(legacy)===legacy,'legacy backup');
+          for(const modify of [s=>s.cards.push({...s.cards[0]}),s=>s.cards[0].due=-1,s=>s.profile.minutes=17,s=>s.profile.theme='invalid',s=>s.days={'oops':{}},s=>s.completed=['fake'],s=>s.timer={started:NaN,task:'sound'}]){
             const copy=structuredClone(s);modify(copy);let rejected=false;try{m.validateState(copy)}catch{rejected=true}check(rejected,'bad backup accepted');
           }
           const start=new Date(2026,0,2,23,59,30).getTime();
@@ -141,7 +154,8 @@ def run():
         # Offline navigation and reload with all first-party module/data assets.
         context.set_offline(True)
         page.reload()
-        expect(page.locator('h1')).to_contain_text('Nǐ hǎo')
+        expect(page.locator('h1')).to_have_text('Today')
+        expect(page.locator('#theme-picker')).to_have_value('synthwave')
         page.goto(BASE+'/#resources')
         page.get_by_role('button',name='All',exact=True).click()
         expect(page.locator('.resource-card')).to_have_count(30)
@@ -161,6 +175,14 @@ def run():
         page.locator('#settings-form button[type="submit"]').click()
         page.set_viewport_size({'width':390,'height':844})
         page.goto(BASE)
+        for theme in ['dragon', 'cyberpunk', 'synthwave']:
+            page.locator('#theme-picker').select_option(theme)
+            for route in ['today', 'path', 'practice', 'resources', 'progress']:
+                page.goto(BASE+'/#'+route)
+                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (theme, route)
+            page.goto(BASE)
+            page.screenshot(path=f'/tmp/mandarin-{theme}-mobile.png')
+        page.locator('#theme-picker').select_option('dragon')
         page.screenshot(path='/tmp/mandarin-mobile.png',full_page=True)
         assert not errors,errors
         context.close()
@@ -168,7 +190,7 @@ def run():
         context=browser.new_context()
         page=context.new_page()
         page.goto(BASE+'/mandarin-app/')
-        expect(page.locator('h1')).to_have_text('A little better, every day.')
+        expect(page.locator('h1')).to_have_text('Today')
         scope=page.evaluate('(async()=> (await navigator.serviceWorker.ready).scope)()')
         assert scope==BASE+'/mandarin-app/',scope
         page.wait_for_function('navigator.serviceWorker.controller !== null')

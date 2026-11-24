@@ -9,7 +9,6 @@ import {
   validateState,
   dayKey,
   schedule,
-  streak,
   accrueTimer
 } from './state.js';
 const $ = (s, root = document) => root.querySelector(s);
@@ -54,6 +53,33 @@ const today = () => {
   };
 };
 
+const iconPaths = {
+  today: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+  path: '<path d="M4 4h6a2 2 0 0 1 2 2v15a4 4 0 0 0-4-2H3V4h1Zm16 0h-6a2 2 0 0 0-2 2v15a4 4 0 0 1 4-2h5V4h-1Z"/>',
+  practice: '<rect x="6" y="7" width="15" height="14" rx="2"/><path d="M17 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h1M10 12h7M10 16h5"/>',
+  resources: '<path d="M4 4h16v17l-8-5-8 5V4Z"/>',
+  progress: '<path d="M4 20h17M7 16v-5M12 16V7M17 16V3"/>',
+  settings: '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/>',
+  audio: '<path d="m11 5-6 4H2v6h3l6 4V5ZM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/>'
+};
+function icon(name) {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name] || ''}</svg>`;
+}
+document.querySelectorAll('[data-icon]').forEach(element => { element.innerHTML = icon(element.dataset.icon); });
+function applyTheme() {
+  const theme = state.profile.theme || 'dragon';
+  document.documentElement.dataset.theme = theme;
+  $('#theme-picker').value = theme;
+  document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+}
+$('#theme-picker').addEventListener('change', event => {
+  const previous = state.profile.theme;
+  state.profile.theme = event.target.value;
+  if (persist()) applyTheme();
+  else { state.profile.theme = previous; $('#theme-picker').value = previous || 'dragon'; }
+});
+applyTheme();
+
 function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -84,56 +110,98 @@ function dueCount() {
   return dueCards().length;
 }
 
-function intro(eyebrow, title, subtitle) {
-  return `<div class="page-intro"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div><span class="date-chip">${new Date().toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'})}</span></div>`;
+function intro(title, subtitle = '') {
+  return `<div class="page-intro"><div><h1>${title}</h1>${subtitle ? `<p>${subtitle}</p>` : ''}</div><span class="date-chip">${new Date().toLocaleDateString('en', {weekday: 'short', month: 'short', day: 'numeric'})}</span></div>`;
 }
 
 function stats() {
-  return `<div class="stats"><div class="stat"><span class="stat-icon">♧</span><div><strong>${streak(state.days)}<small>days</small></strong><p>Current practice streak</p></div></div><div class="stat"><span class="stat-icon">◷</span><div><strong>${Math.floor(today().seconds/60)}<small>/ ${state.profile.minutes} min</small></strong><p>Practice logged today</p></div></div><div class="stat"><span class="stat-icon">▱</span><div><strong>${dueCount()}<small>phrases</small></strong><p>Ready for review</p></div></div></div>`;
+  return `<div class="stats">
+    <div class="stat"><strong>${Math.floor(today().seconds / 60)}<small>/ ${state.profile.minutes} min</small></strong><p>Practice today</p></div>
+    <div class="stat"><strong>${dueCount()}</strong><p>Phrases due</p></div>
+    <div class="stat"><strong>${state.completed.length}<small>/ ${lessons.length}</small></strong><p>Lessons practised</p></div>
+  </div>`;
 }
 
 function taskList() {
   const m = state.profile.minutes;
-  return [{
-    id: 'sound',
-    title: 'Tune your ear',
-    detail: 'Pinyin & tones · listen, then imitate',
-    minutes: m / 6
-  }, {
-    id: 'learn',
-    title: 'Learn something useful',
-    detail: `${currentLesson().title} · one small lesson`,
-    minutes: m / 3
-  }, {
-    id: 'review',
-    title: 'Make it stick',
-    detail: `${dueCount()} phrases ready · recall before revealing`,
-    minutes: m / 6
-  }, {
-    id: 'speak',
-    title: 'Say it out loud',
-    detail: 'Listen, repeat, then try without the script',
-    minutes: m / 3
-  }];
+  return [
+    {id: 'sound', title: 'Pronunciation', detail: 'Pinyin and tones', minutes: m / 6},
+    {id: 'learn', title: 'Lesson', detail: currentLesson().title, minutes: m / 3},
+    {id: 'review', title: 'Review', detail: `${dueCount()} phrases due`, minutes: m / 6},
+    {id: 'speak', title: 'Speaking', detail: 'Listen, repeat, then recall', minutes: m / 3}
+  ];
 }
 
 function renderToday() {
-  const lesson = currentLesson(),
-    done = today().done;
-  return `${intro('YOUR DAILY DOSE OF MANDARIN',state.profile.name?`Nǐ hǎo, ${esc(state.profile.name)}.`:'A little better, every day.','You don’t need to learn it all today. Just take the next small step.')}<section class="hero"><div class="hero-copy"><div class="eyebrow">YOUR NEXT SMALL STEP · WEEK ${lesson.week}</div><h2>${esc(lesson.title)}<br>Start a real conversation.</h2><p>${esc(lesson.goal)} A few useful phrases, one moment of confidence.</p><button class="button primary" data-lesson="${lesson.id}">Let’s get started <span>→</span></button><span class="hero-meta">Beginner friendly · ${state.profile.minutes/3} min</span></div><div class="hero-art" aria-hidden="true"><span class="orb"></span><span class="hanzi" lang="zh-Hans">你好</span><span class="art-label">NǏ HǍO</span></div></section>${stats()}<div class="dashboard-grid"><section><div class="section-heading"><h2>Your daily rhythm</h2><small>${done.length} of 4 complete</small></div><div class="routine-list">${taskList().map(t=>`<div class="routine-row"><button class="check ${done.includes(t.id)?'done':''}" data-check="${t.id}" aria-label="${done.includes(t.id)?'Unmark':'Mark'} ${t.title} complete" aria-pressed="${done.includes(t.id)}">${done.includes(t.id)?'✓':''}</button><div class="routine-copy"><h3>${t.title}</h3><p>${t.detail}</p></div><span class="duration">${Number(t.minutes.toFixed(1))} min</span><button class="arrow-button" data-task="${t.id}" aria-label="Start ${t.title}">↗</button></div>`).join('')}</div><p class="daily-note"><span>✧</span> Your rhythm, not a race. Even 15 minutes is a good day.</p></section><aside><section class="panel phrase-panel"><div class="eyebrow">A PHRASE TO TAKE WITH YOU</div><div class="phrase-hanzi" lang="zh-Hans">请再说一遍。</div><p class="pinyin">Qǐng zài shuō yī biàn.</p><p class="translation">Please say it again.</p><button class="audio-button" data-say="请再说一遍。">◖)) Listen & repeat</button><p class="phrase-tip">Your most useful beginner skill? Asking for another try.</p></section><div class="tutor-note"><span class="symbol">☷</span><div><h3>A little human connection goes a long way.</h3><p>Try a short weekly conversation with a patient speaker or tutor. Ask for one specific pronunciation correction.</p><a href="#resources">Find speaking resources ↗</a></div></div></aside></div><div class="bottom-banner"><span>♧</span><p>One home for your routine. Great resources for the rest.<br>Our approach: a personal companion + trusted learning tools.</p><a href="#resources">Explore the library ↗</a></div>`;
+  const lesson = currentLesson(), done = today().done;
+  const tasks = taskList().map(task => {
+    const checked = done.includes(task.id);
+    return `<div class="routine-row">
+      <button class="check ${checked ? 'done' : ''}" data-check="${task.id}" aria-label="${checked ? 'Unmark' : 'Mark'} ${task.title} complete" aria-pressed="${checked}"></button>
+      <div class="routine-copy"><h3>${task.title}</h3><p>${esc(task.detail)}</p></div>
+      <span class="duration">${Number(task.minutes.toFixed(1))} min</span>
+      <button class="arrow-button" data-task="${task.id}" aria-label="Start ${task.title}">↗</button>
+    </div>`;
+  }).join('');
+  return `${intro('Today')}
+    <section class="hero">
+      <div><div class="eyebrow">WEEK ${lesson.week} · CURRENT LESSON</div><h2>${esc(lesson.title)}</h2><p>${esc(lesson.goal)}</p></div>
+      <button class="button primary" data-lesson="${lesson.id}">Open lesson <span aria-hidden="true">→</span></button>
+    </section>
+    ${stats()}
+    <div class="dashboard-grid">
+      <section><div class="section-heading"><h2>Daily practice</h2><small>${done.length} / 4 complete</small></div><div class="routine-list">${tasks}</div></section>
+      <aside><div class="section-heading"><h2>Phrase</h2><a href="#practice" class="muted small">Review →</a></div>
+        <section class="panel phrase-panel">
+          <div class="phrase-hanzi" lang="zh-Hans">请再说一遍。</div><p class="pinyin">Qǐng zài shuō yī biàn.</p><p class="translation">Please say it again.</p>
+          <button class="audio-button" data-say="请再说一遍。">${icon('audio')} Listen</button>
+        </section>
+        <a href="#resources" class="reference-link">Pronunciation resources ↗</a>
+      </aside>
+    </div>`;
 }
 
 function renderPath() {
-  return `${intro('YOUR FIRST FOUR WEEKS','Small steps. Useful words.','Eight practical missions. Repeat each over several days; move on when you can use it.')}<div class="notice">Start with sounds and tiny conversations. The weeks are a suggested pace, not a proficiency promise. Use one core course alongside this path.</div>${[1,2,3,4].map(w=>`<div class="week-label">WEEK ${w} · ${['GET COMFORTABLE','EVERYDAY MOMENTS','OUT IN THE WORLD','PUT IT TOGETHER'][w-1]}</div><div class="cards-grid">${lessons.filter(l=>l.week===w).map((l,i)=>`<article class="panel lesson-card"><span class="tag">${state.completed.includes(l.id)?'✓ Practised':`MISSION ${String((w-1)*2+i+1).padStart(2,'0')}`}</span><h2>${l.title}</h2><p>${l.goal}</p><button class="button secondary" data-lesson="${l.id}">${state.completed.includes(l.id)?'Practise again':'Open lesson'} →</button></article>`).join('')}</div>`).join('')}<div class="notice spaced">Alongside these missions: take the first matching beginner lessons in your chosen course. Once a week, check whether you can introduce yourself without reading.</div>`;
+  const weeks = [1, 2, 3, 4].map(week => {
+    const cards = lessons.filter(lesson => lesson.week === week).map(lesson => {
+      const practised = state.completed.includes(lesson.id);
+      return `<article class="panel lesson-card"><span class="tag">${practised ? '✓ Practised' : 'Not started'}</span><h2>${esc(lesson.title)}</h2><p>${esc(lesson.goal)}</p><button class="button secondary" data-lesson="${lesson.id}">${practised ? 'Practise again' : 'Open lesson'} →</button></article>`;
+    }).join('');
+    return `<h2 class="week-label">Week ${week}</h2><div class="cards-grid">${cards}</div>`;
+  }).join('');
+  return `${intro('Lessons', 'Eight beginner lessons. Repeat at your own pace.')}${weeks}`;
 }
 
 function renderPractice() {
-  if (!currentCard || !dueCards().some(c => c.id === currentCard.id)) {
+  if (!currentCard || !dueCards().some(card => card.id === currentCard.id)) {
     currentCard = dueCards()[0] || null;
     revealed = false;
   }
-  const c = currentCard;
-  return `${intro('RECALL · REPEAT · REMEMBER','Make a few phrases yours.','Try saying the Mandarin before you reveal it. An honest “again” helps more than a lucky guess.')}<div class="practice-layout"><section class="panel flashcard"><span class="eyebrow">${dueCount()} READY · ${reviewed} REVIEWED THIS SESSION</span>${c?`<p class="prompt">${esc(c.english)}</p>${revealed?`<div class="revealed"><div class="phrase-hanzi" lang="zh-Hans">${esc(c.hanzi)}</div><p class="pinyin">${esc(c.pinyin)}</p><button class="audio-button" data-say="${esc(c.hanzi)}">◖)) Hear device voice</button></div><div class="rating-buttons">${['again','good','easy'].map(r=>`<button class="button rating-${r}" data-rate="${r}">${{again:'Again',good:'Got it',easy:'Easy'}[r]}<small>${intervalLabel(schedule(c,r).due)}</small></button>`).join('')}</div>`:`<p class="muted small">Say it out loud. It’s okay to take your time.</p><button class="button primary" id="reveal">Reveal phrase →</button>`}`:`<div class="phrase-hanzi">✓</div><h2>You’re all caught up.</h2><p class="muted">${nextReviewLabel()}</p><a class="button primary" href="#path">Try a useful lesson →</a>`}</section><aside class="panel"><h2>Add your own phrase</h2><p class="muted small">Keep phrases you actually want to use. Check new phrases with a teacher or dictionary.</p><form id="phrase-form" class="form-stack"><label>Chinese<input required name="hanzi" maxlength="200" placeholder="你好。" lang="zh-Hans"></label><label>Pinyin<input required name="pinyin" maxlength="200" placeholder="Nǐ hǎo."></label><label>Meaning<input required name="english" maxlength="200" placeholder="Hello."></label><button class="button primary" type="submit">Add to my phrases +</button></form><hr><button class="text-button" id="export-tsv">Export all ${state.cards.length} phrases for Anki ↗</button><p class="muted small spaced">Simple spaced review: again in 10 minutes, got it in at least a day, easy in at least three. Intervals grow as you recall.</p></aside></div><p class="muted small spaced">Pinyin shows dictionary tones. Connected speech can sound different. Device speech is a rehearsal aid; use native recordings to check it.</p>`;
+  const card = currentCard;
+  let review;
+  if (!card) {
+    review = `<h2>No phrases due</h2><p class="muted spaced">${nextReviewLabel()}</p><a class="button secondary" href="#path">Open lessons →</a>`;
+  } else if (!revealed) {
+    review = `<p class="prompt">${esc(card.english)}</p><button class="button primary" id="reveal">Show answer</button>`;
+  } else {
+    const ratings = ['again', 'good', 'easy'].map(rating => `<button class="button rating-${rating}" data-rate="${rating}">${{again: 'Again', good: 'Recalled', easy: 'Easy'}[rating]}<small>${intervalLabel(schedule(card, rating).due)}</small></button>`).join('');
+    review = `<p class="prompt">${esc(card.english)}</p><div class="revealed"><div class="phrase-hanzi" lang="zh-Hans">${esc(card.hanzi)}</div><p class="pinyin">${esc(card.pinyin)}</p><button class="audio-button" data-say="${esc(card.hanzi)}">${icon('audio')} Listen</button></div><div class="rating-buttons">${ratings}</div>`;
+  }
+  return `${intro('Review', 'Say the Mandarin phrase before showing the answer.')}
+    <div class="practice-layout">
+      <section class="panel flashcard"><span class="eyebrow">${dueCount()} DUE · ${reviewed} REVIEWED</span>${review}</section>
+      <aside class="panel">
+        <h2>Add phrase</h2>
+        <form id="phrase-form" class="form-stack">
+          <label>Chinese<input required name="hanzi" maxlength="200" placeholder="你好。" lang="zh-Hans"></label>
+          <label>Pinyin<input required name="pinyin" maxlength="200" placeholder="Nǐ hǎo."></label>
+          <label>Meaning<input required name="english" maxlength="200" placeholder="Hello."></label>
+          <button class="button primary" type="submit">Add phrase</button>
+        </form>
+        <hr><button class="text-button" id="export-tsv">Export ${state.cards.length} phrases for Anki ↗</button>
+        <details><summary>Review intervals</summary><p>Again: 10 minutes. Recalled: at least 1 day. Easy: at least 3 days. Intervals increase with successful recall.</p></details>
+      </aside>
+    </div>`;
 }
 
 function intervalLabel(due) {
@@ -143,12 +211,12 @@ function intervalLabel(due) {
 
 function nextReviewLabel() {
   const next = state.cards.reduce((v, c) => Math.min(v, c.due), Infinity);
-  return Number.isFinite(next) ? `Next review: ${new Date(next).toLocaleString('en',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}. Come back then, or practise a lesson.` : 'Add a personal phrase or open a lesson to get started.';
+  return Number.isFinite(next) ? `Next review: ${new Date(next).toLocaleString('en',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}.` : 'Add a phrase or open a lesson.';
 }
 
 function renderResources() {
   const filtered = resources.filter(r => (resourceFilter === 'All' || r.level === resourceFilter || r.category === resourceFilter) && `${r.title} ${r.note} ${r.category}`.toLowerCase().includes(search.toLowerCase()));
-  return `${intro('LESS SEARCHING · MORE LEARNING','Your small, useful toolkit.','Choose one course, one dictionary, and something easy to listen to. Add more when you need it.')}<div class="notice">Recommended hybrid: this app for your daily rhythm and phrases; a core course for structure; native audio and people for listening and feedback. Resources open on their own websites.</div><details><summary>The video behind this toolkit · source notes & timestamps</summary><p>Brian Wiles, ${external('https://www.youtube.com/watch?v=WyehfFj72zY','How to Learn Chinese (Mandarin) On Your Own for FREE')}. Audio was independently transcribed with Whisper base.en and compared with automatic English captions on November 24, 2026. All 26 description links were checked. Transcription is machine-generated, not human-verified.</p><ul><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=30s','00:30 · Core course')} · Choose a consistent learning sequence.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=83s','01:23 · Pronunciation')} · Start pinyin and tones early; seek feedback.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=212s','03:32 · Vocabulary')} · Review with Anki and use Pleco for lookups.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=323s','05:23 · Listening')} · Add harder audio as comprehension grows.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=467s','07:46 · Reading')} · Keep vocabulary aligned; use graded material.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=571s','09:31 · Writing')} · Handwriting is optional; learn pinyin input.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=638s','10:38 · Routine')} · Practise consistently; consider weekly tutoring.</li></ul><p>Our adaptation: a 30-minute beginner routine, easy listening from day one, and optional handwriting. The video’s HSK 1–6 references describe its materials, not a claim about today’s exam framework. Pricing and regional availability can change. Affiliate redirects are replaced with direct links.</p></details><div class="filters" role="group" aria-label="Filter resources">${['Start here','All','Courses','Pronunciation','Listening','Reading','Speaking','Tools','Books','Writing','Later','Optional'].map(f=>`<button class="filter ${resourceFilter===f?'active':''}" data-filter="${f}" aria-pressed="${resourceFilter===f}">${f}</button>`).join('')}</div><label for="resource-search" class="small muted">Find a resource</label><input id="resource-search" class="search-input" type="search" placeholder="Search this toolkit…" value="${esc(search)}"><div id="resource-results" class="cards-grid">${resourceCards(filtered)}</div><p class="muted small spaced">26 links from the video, plus four recommendations. A successful page response does not verify every lesson, shared deck, price, or license. No third-party content is copied into this app.</p>`;
+  return `${intro('Resources', 'Courses, pronunciation, reading, and listening.')}<details><summary>Video sources & timestamps</summary><p>Brian Wiles, ${external('https://www.youtube.com/watch?v=WyehfFj72zY','How to Learn Chinese (Mandarin) On Your Own for FREE')}. Audio was independently transcribed with Whisper base.en and compared with automatic English captions on November 24, 2026. All 26 description links were checked. Transcription is machine-generated, not human-verified.</p><ul><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=30s','00:30 · Core course')} · Choose a consistent learning sequence.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=83s','01:23 · Pronunciation')} · Start pinyin and tones early; seek feedback.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=212s','03:32 · Vocabulary')} · Review with Anki and use Pleco for lookups.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=323s','05:23 · Listening')} · Add harder audio as comprehension grows.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=467s','07:46 · Reading')} · Keep vocabulary aligned; use graded material.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=571s','09:31 · Writing')} · Handwriting is optional; learn pinyin input.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=638s','10:38 · Routine')} · Practise consistently; consider weekly tutoring.</li></ul><p>Our adaptation: a 30-minute beginner routine, easy listening from day one, and optional handwriting. The video’s HSK 1–6 references describe its materials, not a claim about today’s exam framework. Pricing and regional availability can change. Affiliate redirects are replaced with direct links.</p></details><div class="filters" role="group" aria-label="Filter resources">${['Start here','All','Courses','Pronunciation','Listening','Reading','Speaking','Tools','Books','Writing','Later','Optional'].map(f=>`<button class="filter ${resourceFilter===f?'active':''}" data-filter="${f}" aria-pressed="${resourceFilter===f}">${f}</button>`).join('')}</div><label for="resource-search" class="small muted">Find a resource</label><input id="resource-search" class="search-input" type="search" placeholder="Search resources…" value="${esc(search)}"><div id="resource-results" class="cards-grid">${resourceCards(filtered)}</div><p class="muted small spaced">26 links from the video, plus four recommendations. A successful page response does not verify every lesson, shared deck, price, or license. No third-party content is copied into this app.</p>`;
 }
 
 function resourceCards(items) {
@@ -167,30 +235,30 @@ function renderProgress() {
     return `<div class="history-row"><time datetime="${dayKey(date)}">${label}</time><span class="bar" style="width:${width}%"></span><span class="minutes">${Math.floor(seconds / 60)} min</span></div>`;
   }).join('');
   const progress = (state.completed.length / lessons.length) * 100;
-  return `${intro('NOTICE THE SMALL WINS', 'Practice adds up.', 'Track the work you’ve done, then see what you can do with it.')}${stats()}
+  return `${intro('Progress')}${stats()}
     <div class="cards-grid">
       <section class="panel">
-        <h2>Your last seven days</h2>${history}
+        <h2>Last 7 days</h2>${history}
         <p class="muted small">Minutes come from your timer or an entry below. Checkmarks record completed activities separately.</p>
       </section>
       <section class="panel">
-        <h2>Your beginner journey</h2>
-        <p class="muted">${state.completed.length} of ${lessons.length} missions practised</p>
-        <div class="progress-track" role="progressbar" aria-label="Missions practised" aria-valuemin="0" aria-valuemax="8" aria-valuenow="${state.completed.length}"><div style="width:${progress}%"></div></div>
+        <h2>Lessons</h2>
+        <p class="muted">${state.completed.length} of ${lessons.length} lessons practised</p>
+        <div class="progress-track" role="progressbar" aria-label="Lessons practised" aria-valuemin="0" aria-valuemax="8" aria-valuenow="${state.completed.length}"><div style="width:${progress}%"></div></div>
         <p class="muted small">${Math.floor(totalSeconds / 60)} total minutes · ${reviews} phrase reviews · ${state.cards.length} saved phrases</p>
-        <h3 class="spaced">A useful weekly check</h3>
+        <h3 class="spaced">Weekly check</h3>
         <ul class="checklist"><li>Can I introduce myself without a script?</li><li>Can I understand a familiar question?</li><li>Can I ask someone to say it again?</li><li>What one sound should I ask a speaker to check?</li></ul>
       </section>
       <section class="panel">
-        <h2>Practised somewhere else?</h2>
+        <h2>Log outside practice</h2>
         <p class="muted small">Log today’s course, listening, or conversation time.</p>
         <form id="log-form" class="form-stack"><label>Minutes<input type="number" name="minutes" min="1" max="180" required placeholder="10"></label><button class="button primary">Log practice</button></form>
       </section>
       <section class="panel">
-        <h2>Keep your progress safe</h2>
+        <h2>Backup</h2>
         <p class="muted small">Progress is stored on this device, in this browser. Export regularly so you can move it to another device.</p>
         <button class="button secondary" id="progress-export">Download backup ↓</button>
-        <p class="muted small spaced">These numbers describe practice, not a measured language level. Real conversations are your most useful checkpoint.</p>
+
       </section>
     </div>`;
 }
@@ -202,11 +270,11 @@ function render() {
     else a.removeAttribute('aria-current');
   });
   $('#breadcrumb').textContent = {
-    today: 'Your daily practice',
-    path: 'Your beginner journey',
-    practice: 'Your personal phrase collection',
-    resources: 'Your learning toolkit',
-    progress: 'Your practice, over time'
+    today: 'Daily practice',
+    path: 'Beginner lessons',
+    practice: 'Phrase review',
+    resources: 'Resource library',
+    progress: 'Practice history'
   } [page];
   $('#main').innerHTML = (storageError || loadError ? `<div class="notice storage-warning">${loadError?'Saved data could not be loaded. Existing browser data has been left intact. Restore a valid backup before making changes.':'Progress cannot be saved in this browser. Download a backup before closing.'}</div>` : '') + ({
     today: renderToday,
@@ -266,7 +334,7 @@ function bindPage() {
     }
     state.cards.push(phrase);
     if (persist()) {
-      toast('Phrase added. Try recalling it now.');
+      toast('Phrase added.');
       render();
     }
   });
@@ -335,7 +403,7 @@ function speak(text) {
 }
 
 function phraseHTML(p) {
-  return `<div class="lesson-phrase"><div><strong lang="zh-Hans">${esc(p[0])}</strong><span class="pinyin">${esc(p[1])}</span><small>${esc(p[2])}</small></div><button class="audio-button" data-say="${esc(p[0])}" aria-label="Hear ${esc(p[2])}">◖))</button></div>`;
+  return `<div class="lesson-phrase"><div><strong lang="zh-Hans">${esc(p[0])}</strong><span class="pinyin">${esc(p[1])}</span><small>${esc(p[2])}</small></div><button class="audio-button" data-say="${esc(p[0])}" aria-label="Hear ${esc(p[2])}">${icon('audio')}</button></div>`;
 }
 
 function openLesson(id, mode = 'learn') {
@@ -344,7 +412,7 @@ function openLesson(id, mode = 'learn') {
   const l = activeLesson,
     dialog = $('#lesson-dialog');
   stopRecording();
-  dialog.innerHTML = `<div class="dialog-heading"><div><div class="eyebrow">WEEK ${l.week} · ${mode==='sound'?'SOUNDS FIRST':mode==='speak'?'LISTEN & SPEAK':'A SMALL PRACTICAL LESSON'}</div><h2>${mode==='sound'?'Get to know the tones':esc(l.title)}</h2></div><button class="icon-button close-dialog" aria-label="Close lesson">×</button></div><p class="muted">${esc(l.goal)}</p>${mode==='sound'?`<p>Listen to each syllable. Hum the pitch, then repeat the syllable. The neutral tone is short and unstressed; it has no fixed pitch.</p><div class="tone-grid">${tones.map(t=>`<button class="tone" data-say="${t.text}"><svg width="65" height="45" viewBox="0 0 100 90" aria-hidden="true"><path d="${t.path}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg><strong>${t.pinyin}</strong><span>${t.label}</span></button>`).join('')}</div><p class="muted small">These curves are teaching sketches. A third tone is often low in connected speech rather than a full dip and rise. Use a native model for comparison.</p>${external('https://www.youtube.com/watch?v=FlaJ12tmtu4&t=31s','Open the native pronunciation guide','button secondary')}`:''}${mode==='speak'?`<div class="notice">Listen once for meaning. Read if you need help, listen again, then imitate one line at a time. Try the exchange without looking.</div>${l.dialogue.map(p=>phraseHTML([p[0],'',p[1]])).join('')}<details><summary>Show the phrase pinyin</summary>${l.phrases.map(phraseHTML).join('')}</details>`:l.phrases.map(phraseHTML).join('')}<p class="muted small spaced">${esc(l.note)}</p><div class="lesson-exercise"><strong>Try it in real life</strong><p>${esc(l.challenge)}</p></div>${mode==='learn'?`<details><summary>Quick recall: ${esc(l.question)}</summary><p lang="zh-Hans">${esc(l.answer)}</p></details>`:''}<div class="timer-block"><div><div class="eyebrow">FOCUSED PRACTICE</div><span class="timer-value" id="timer-value">00:00</span></div><button class="button secondary" id="timer-toggle">${state.timer?'Pause & log':'Start timer'}</button></div>${mode==='speak'?`<button class="button secondary" id="record">Record yourself ◉</button><audio id="playback" controls hidden></audio><p class="muted small spaced">Recording stays in memory and is discarded when you close this lesson. Listen for differences; there is no automatic pronunciation score.</p>`:''}<p class="muted small">Audio here uses a device voice when available. Native recordings in the library are the better pronunciation model.</p><div class="button-row"><button class="button primary" id="finish-lesson">${mode==='learn'?'I practised this · save phrases':'Mark activity complete'} ✓</button><button class="button secondary close-dialog">Close</button></div>`;
+  dialog.innerHTML = `<div class="dialog-heading"><div><div class="eyebrow">WEEK ${l.week} · ${mode==='sound'?'PRONUNCIATION':mode==='speak'?'SPEAKING':'LESSON'}</div><h2>${mode==='sound'?'Tones':esc(l.title)}</h2></div><button class="icon-button close-dialog" aria-label="Close lesson">×</button></div><p class="muted">${esc(l.goal)}</p>${mode==='sound'?`<p>Listen to each syllable. Hum the pitch, then repeat the syllable. The neutral tone is short and unstressed; it has no fixed pitch.</p><div class="tone-grid">${tones.map(t=>`<button class="tone" data-say="${t.text}"><svg width="65" height="45" viewBox="0 0 100 90" aria-hidden="true"><path d="${t.path}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg><strong>${t.pinyin}</strong><span>${t.label}</span></button>`).join('')}</div><p class="muted small">These curves are teaching sketches. A third tone is often low in connected speech rather than a full dip and rise. Use a native model for comparison.</p>${external('https://www.youtube.com/watch?v=FlaJ12tmtu4&t=31s','Open the native pronunciation guide','button secondary')}`:''}${mode==='speak'?`<div class="notice">Listen once for meaning. Read if you need help, listen again, then imitate one line at a time. Try the exchange without looking.</div>${l.dialogue.map(p=>phraseHTML([p[0],'',p[1]])).join('')}<details><summary>Show the phrase pinyin</summary>${l.phrases.map(phraseHTML).join('')}</details>`:l.phrases.map(phraseHTML).join('')}<p class="muted small spaced">${esc(l.note)}</p><div class="lesson-exercise"><strong>Exercise</strong><p>${esc(l.challenge)}</p></div>${mode==='learn'?`<details><summary>Quick recall: ${esc(l.question)}</summary><p lang="zh-Hans">${esc(l.answer)}</p></details>`:''}<div class="timer-block"><div><div class="eyebrow">FOCUSED PRACTICE</div><span class="timer-value" id="timer-value">00:00</span></div><button class="button secondary" id="timer-toggle">${state.timer?'Pause & log':'Start timer'}</button></div>${mode==='speak'?`<button class="button secondary" id="record">Record yourself ◉</button><audio id="playback" controls hidden></audio><p class="muted small spaced">Recording stays in memory and is discarded when you close this lesson. Listen for differences; there is no automatic pronunciation score.</p>`:''}<p class="muted small">Audio here uses a device voice when available. Native recordings in the library are the better pronunciation model.</p><div class="button-row"><button class="button primary" id="finish-lesson">${mode==='learn'?'Complete lesson':'Complete activity'} ✓</button><button class="button secondary close-dialog">Close</button></div>`;
   dialog.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(b.dataset.say));
   dialog.querySelectorAll('.close-dialog').forEach(b => b.onclick = () => dialog.close());
   $('#timer-toggle').onclick = toggleTimer;
@@ -399,7 +467,7 @@ function finishLesson() {
     }
   }
   if (persist()) {
-    toast(task === 'learn' ? 'Mission practised. Its phrases are in your review collection.' : 'Practice saved. A small step forward.');
+    toast(task === 'learn' ? 'Lesson saved. Phrases added to review.' : 'Practice saved.');
     $('#lesson-dialog').close();
     render();
   }
@@ -486,7 +554,7 @@ function exportBackup() {
   const copy = structuredClone(state);
   if (copy.timer) accrueTimer(copy);
   download(`little-mandarin-${dayKey()}.json`, JSON.stringify(copy, null, 2), 'application/json');
-  toast('Backup downloaded. Keep it somewhere safe.');
+  toast('Backup downloaded.');
 }
 
 function exportTSV() {
@@ -499,6 +567,7 @@ $('#profile-settings').onclick = () => $('#settings-button').click();
 $('#settings-button').onclick = () => {
   $('#name').value = state.profile.name;
   $('#minutes').value = state.profile.minutes;
+  $(`#settings input[name="theme"][value="${state.profile.theme || 'dragon'}"]`).checked = true;
   $('#settings').showModal();
 };
 $('#settings .close-dialog').onclick = () => $('#settings').close();
@@ -506,10 +575,12 @@ $('#settings-form').onsubmit = e => {
   e.preventDefault();
   state.profile.name = $('#name').value.trim();
   state.profile.minutes = Number($('#minutes').value);
+  state.profile.theme = $('#settings input[name="theme"]:checked').value;
   if (persist()) {
+    applyTheme();
     $('#settings').close();
     render();
-    toast('Your preferences are saved.');
+    toast('Preferences saved.');
   }
 };
 $('#export').onclick = exportBackup;
@@ -525,9 +596,10 @@ $('#import').onchange = async e => {
     loadError = false;
     currentCard = null;
     if (save()) {
+      applyTheme();
       $('#settings').close();
       render();
-      toast('Backup restored. Welcome back.');
+      toast('Backup restored.');
     }
   } catch (error) {
     toast(error.message === 'Unexpected end of JSON input' ? 'This backup is not valid JSON.' : `Could not restore: ${error.message}`);
@@ -572,7 +644,7 @@ window.addEventListener('pagehide', () => {
 });
 
 function connectivity() {
-  $('#connection').innerHTML = `<i></i> ${navigator.onLine?'Local-first':'Offline'}`;
+  $('#connection').innerHTML = `<i></i> ${navigator.onLine ? 'Online' : 'Offline'}`;
 }
 window.addEventListener('online', connectivity);
 window.addEventListener('offline', connectivity);
@@ -592,7 +664,7 @@ $('#install').onclick = async () => {
 };
 window.addEventListener('appinstalled', () => {
   $('#install').hidden = true;
-  toast('App installed. A little Mandarin, whenever you like.');
+  toast('App installed.');
 });
 try {
   const response = await fetch('./resources.json');

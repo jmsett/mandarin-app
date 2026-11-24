@@ -1,33 +1,75 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dragon">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#174d3c"><meta name="description" content="A little Mandarin, every day. Your personal, offline-ready practice companion for real-life conversations.">
-  <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./assets/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./assets/icon-192.png">
-  <link rel="stylesheet" href="./styles.css"><title>Little Mandarin · A little, every day</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#141310">
+  <meta name="description" content="Mandarin lessons, phrase review, and daily practice. Offline-ready.">
+  <script>
+    try {
+      const theme = JSON.parse(localStorage.getItem('little-mandarin-v1'))?.profile?.theme;
+      if (['dragon', 'cyberpunk', 'synthwave'].includes(theme)) document.documentElement.dataset.theme = theme;
+    } catch {}
+  </script>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Little Mandarin</title>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
   <aside class="sidebar">
-    <a href="#today" class="brand"><span class="brand-mark" lang="zh-Hans">小</span><span>little mandarin<small>A LITTLE, EVERY DAY</small></span></a>
-    <div class="workspace-label">YOUR LEARNING SPACE</div>
+    <a href="#today" class="brand"><span class="brand-mark" lang="zh-Hans">小</span><span>Little Mandarin</span></a>
     <nav aria-label="Main navigation" id="nav">
-      <a href="#today" data-page="today"><span aria-hidden="true">◷</span> Today <span class="nav-dot"></span></a>
-      <a href="#path" data-page="path"><span aria-hidden="true">⌁</span> Learning path</a>
-      <a href="#practice" data-page="practice"><span aria-hidden="true">▱</span> Phrase practice</a>
-      <a href="#resources" data-page="resources"><span aria-hidden="true">↗</span> Resource library</a>
-      <a href="#progress" data-page="progress"><span aria-hidden="true">▥</span> My progress</a>
+      <a href="#today" data-page="today"><span class="nav-icon" data-icon="today" aria-hidden="true"></span><span>Today</span></a>
+      <a href="#path" data-page="path"><span class="nav-icon" data-icon="path" aria-hidden="true"></span><span>Lessons</span></a>
+      <a href="#practice" data-page="practice"><span class="nav-icon" data-icon="practice" aria-hidden="true"></span><span>Review</span></a>
+      <a href="#resources" data-page="resources"><span class="nav-icon" data-icon="resources" aria-hidden="true"></span><span>Resources</span></a>
+      <a href="#progress" data-page="progress"><span class="nav-icon" data-icon="progress" aria-hidden="true"></span><span>Progress</span></a>
     </nav>
-    <div class="sidebar-bottom"><div class="beginner-label"><span class="little-dot"></span> BEGINNER JOURNEY</div><p>Small steps.<br>Real conversations.</p><button class="text-button" id="settings-button">Preferences & backup <span>↗</span></button></div>
+    <div class="sidebar-bottom"><button class="text-button" id="settings-button">Preferences <span aria-hidden="true">↗</span></button></div>
   </aside>
   <div class="app-shell">
-    <header class="topbar"><span id="breadcrumb">Your daily practice</span><div class="topbar-right"><span class="connection" id="connection"><i></i> Local-first</span><button id="install" hidden>Install app ↓</button><button class="avatar" id="profile-settings" aria-label="Open preferences and backup">你</button></div></header>
+    <header class="topbar">
+      <span id="breadcrumb">Daily practice</span>
+      <div class="topbar-right">
+        <span class="connection" id="connection"><i></i> Offline</span>
+        <label for="theme-picker" class="sr-only">Color theme</label>
+        <select id="theme-picker" aria-label="Color theme">
+          <option value="dragon">Dragon</option>
+          <option value="cyberpunk">Cyberpunk</option>
+          <option value="synthwave">Synthwave</option>
+        </select>
+        <button id="install" class="button secondary" hidden>Install</button>
+        <button class="icon-button" id="profile-settings" aria-label="Open preferences and backup" data-icon="settings"></button>
+      </div>
+    </header>
     <main id="main" tabindex="-1"></main>
-    <footer><span>Built for steady progress, one conversation at a time.</span><a href="https://github.com/jmsett/mandarin-app" target="_blank" rel="noopener noreferrer">Open source ↗</a></footer>
+    <footer><a href="https://github.com/jmsett/mandarin-app" target="_blank" rel="noopener noreferrer">GitHub ↗</a></footer>
   </div>
   <div id="toast" role="status" aria-live="polite"></div>
-  <dialog id="settings"><form id="settings-form"><div class="dialog-heading"><h2>Make it yours</h2><button type="button" class="icon-button close-dialog" aria-label="Close preferences">×</button></div><p class="muted">Beginner · everyday conversation · simplified characters</p><label>Your name<input name="name" id="name" maxlength="40" placeholder="What should we call you?"></label><label>Daily practice<select name="minutes" id="minutes"><option value="15">15 minutes · a small start</option><option value="30">30 minutes · a steady rhythm</option><option value="60">60 minutes · more immersion</option></select></label><button class="button primary" type="submit">Save preferences</button></form><hr><h3>Your data stays in this browser</h3><p class="muted">There is no account or cloud sync. Back up before clearing browser data or switching devices. Private browsing may discard progress.</p><div class="button-row"><button class="button secondary" id="export">Download backup</button><label class="button secondary file-label">Restore backup<input type="file" id="import" accept="application/json,.json"></label></div><p class="muted small">Restoring replaces current progress after confirmation. External resources need internet. Device voices may need a download.</p><div id="install-help" class="notice">To install: use your browser’s install menu. On iPhone or iPad, open in Safari → Share → Add to Home Screen.</div></dialog>
+  <dialog id="settings">
+    <form id="settings-form">
+      <div class="dialog-heading"><h2>Preferences</h2><button type="button" class="icon-button close-dialog" aria-label="Close preferences">×</button></div>
+      <label>Name<input name="name" id="name" maxlength="40" placeholder="Optional"></label>
+      <label>Daily goal<select name="minutes" id="minutes"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">60 minutes</option></select></label>
+      <fieldset class="theme-options">
+        <legend>Color theme</legend>
+        <label class="theme-option"><input type="radio" name="theme" value="dragon"><span class="palette" data-palette="dragon"><i></i><i></i><i></i></span><span>Dragon<small>Black · gold · vermilion</small></span></label>
+        <label class="theme-option"><input type="radio" name="theme" value="cyberpunk"><span class="palette" data-palette="cyberpunk"><i></i><i></i><i></i></span><span>Cyberpunk<small>Graphite · yellow · cyan</small></span></label>
+        <label class="theme-option"><input type="radio" name="theme" value="synthwave"><span class="palette" data-palette="synthwave"><i></i><i></i><i></i></span><span>Synthwave<small>Indigo · pink · violet</small></span></label>
+      </fieldset>
+      <button class="button primary" type="submit">Save preferences</button>
+    </form>
+    <hr>
+    <h3>Backup</h3>
+    <p class="muted">Progress is stored in this browser. Download a backup before clearing site data or switching devices.</p>
+    <div class="button-row"><button class="button secondary" id="export">Download backup</button><label class="button secondary file-label">Restore backup<input type="file" id="import" accept="application/json,.json"></label></div>
+    <details><summary>Install & offline use</summary><p>Use your browser’s Install menu. In Safari on iPhone or iPad: Share → Add to Home Screen.</p><p>External media need internet. Device speech may require a Mandarin voice download.</p></details>
+  </dialog>
   <dialog id="lesson-dialog"></dialog>
-  <noscript><p>This practice companion needs JavaScript. Enable it to use lessons and save progress.</p></noscript>
+  <noscript><p>Enable JavaScript to use lessons and save progress.</p></noscript>
   <script type="module" src="./app.js"></script>
-</body></html>
+</body>
+</html>
