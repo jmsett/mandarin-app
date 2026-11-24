@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174d3c"><meta name="description" content="A little Mandarin, every day. Your personal, offline-ready practice companion for real-life conversations.">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./assets/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./styles.css"><title>Little Mandarin · A little, every day</title>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <aside class="sidebar">
+    <a href="#today" class="brand"><span class="brand-mark" lang="zh-Hans">小</span><span>little mandarin<small>A LITTLE, EVERY DAY</small></span></a>
+    <div class="workspace-label">YOUR LEARNING SPACE</div>
+    <nav aria-label="Main navigation" id="nav">
+      <a href="#today" data-page="today"><span aria-hidden="true">◷</span> Today <span class="nav-dot"></span></a>
+      <a href="#path" data-page="path"><span aria-hidden="true">⌁</span> Learning path</a>
+      <a href="#practice" data-page="practice"><span aria-hidden="true">▱</span> Phrase practice</a>
+      <a href="#resources" data-page="resources"><span aria-hidden="true">↗</span> Resource library</a>
+      <a href="#progress" data-page="progress"><span aria-hidden="true">▥</span> My progress</a>
+    </nav>
+    <div class="sidebar-bottom"><div class="beginner-label"><span class="little-dot"></span> BEGINNER JOURNEY</div><p>Small steps.<br>Real conversations.</p><button class="text-button" id="settings-button">Preferences & backup <span>↗</span></button></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar"><span id="breadcrumb">Your daily practice</span><div class="topbar-right"><span class="connection" id="connection"><i></i> Local-first</span><button id="install" hidden>Install app ↓</button><button class="avatar" id="profile-settings" aria-label="Open preferences and backup">你</button></div></header>
+    <main id="main" tabindex="-1"></main>
+    <footer><span>Built for steady progress, one conversation at a time.</span><a href="https://github.com/jmsett/mandarin-app" target="_blank" rel="noopener noreferrer">Open source ↗</a></footer>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="settings"><form id="settings-form"><div class="dialog-heading"><h2>Make it yours</h2><button type="button" class="icon-button close-dialog" aria-label="Close preferences">×</button></div><p class="muted">Beginner · everyday conversation · simplified characters</p><label>Your name<input name="name" id="name" maxlength="40" placeholder="What should we call you?"></label><label>Daily practice<select name="minutes" id="minutes"><option value="15">15 minutes · a small start</option><option value="30">30 minutes · a steady rhythm</option><option value="60">60 minutes · more immersion</option></select></label><button class="button primary" type="submit">Save preferences</button></form><hr><h3>Your data stays in this browser</h3><p class="muted">There is no account or cloud sync. Back up before clearing browser data or switching devices. Private browsing may discard progress.</p><div class="button-row"><button class="button secondary" id="export">Download backup</button><label class="button secondary file-label">Restore backup<input type="file" id="import" accept="application/json,.json"></label></div><p class="muted small">Restoring replaces current progress after confirmation. External resources need internet. Device voices may need a download.</p><div id="install-help" class="notice">To install: use your browser’s install menu. On iPhone or iPad, open in Safari → Share → Add to Home Screen.</div></dialog>
+  <dialog id="lesson-dialog"></dialog>
+  <noscript><p>This practice companion needs JavaScript. Enable it to use lessons and save progress.</p></noscript>
+  <script type="module" src="./app.js"></script>
+</body></html>

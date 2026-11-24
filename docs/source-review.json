@@ -1,0 +1,40 @@
+{
+  "video": "https://www.youtube.com/watch?v=WyehfFj72zY",
+  "title": "How to Learn Chinese (Mandarin) On Your Own for FREE",
+  "creator": "Brian Wiles",
+  "reviewed_on": "2026-11-24",
+  "audio_seconds": 708.928,
+  "transcription": {
+    "engine": "faster-whisper",
+    "model": "base.en",
+    "device": "CPU",
+    "compute_type": "int8",
+    "segments": 148,
+    "cross_checked_with": "YouTube automatic English captions and description",
+    "human_verified": false
+  },
+  "description_links": {
+    "count": 26,
+    "successful_http_responses": 26,
+    "details": "../resources.json",
+    "scope": "Reachability, redirect targets and available titles; not a complete content or licensing audit."
+  },
+  "publication": "Original timestamped notes in the app; source audio and full transcript are not redistributed.",
+  "verification": {
+    "browser": "Playwright Chromium",
+    "offline_paths": [
+      "/",
+      "/mandarin-app/"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "manifest_errors": 0,
+    "installability_errors": 0,
+    "mandarin_device_voice": "Unavailable in test environment; fallback message verified."
+  }
+}
