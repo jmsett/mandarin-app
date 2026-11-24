@@ -1,6 +1,6 @@
 # Little Mandarin
 
-A minimal, buildless, offline-ready beginner Mandarin PWA. Plain HTML, CSS, and JavaScript; no package installation, account, API key, tracking, or backend.
+A minimal, buildless, offline-ready beginner Mandarin PWA. Plain HTML, CSS, and JavaScript; no package installation, account, API key, or backend. No first-party analytics.
 
 The recommended approach is a **hybrid**: use this app to make practice consistent and personal, and use established courses, native recordings, dictionaries, and human feedback for their specialist strengths. This is a practical starter companion, not a complete Mandarin curriculum or a proficiency assessment.
 
@@ -40,6 +40,22 @@ The interface uses task labels and instructional copy, without slogans or motiva
 Select a theme in the header or Preferences. The choice is saved in the existing local profile and included in JSON backups. Backups from before themes were added remain compatible and use Dragon by default. The app shell and icons use Dragon as their install-time default; browser chrome follows the selected palette while running.
 
 The requested [`design-mobile-apps` skill](https://github.com/designed-by-ai/skills/tree/main/skills/design-mobile-apps) was installed with `npx skills add https://github.com/designed-by-ai/skills --skill design-mobile-apps --global --agent codex --yes`. Its shared-token, navigation, touch-target, inset, and state-preservation guidance informed this pass. At the user’s request the implementation uses **local styling without Sleek**; no Sleek-generated screens or authenticated design runs were used. The application still ships without npm dependencies.
+
+## Embedded resources
+
+Supported resources open in a shared in-app viewer, including links inside lessons and the video’s chapter notes:
+
+- YouTube videos and playlists use the privacy-enhanced player. Timestamped links retain their start time; mobile playback is inline and fullscreen remains available.
+- Mandarin Corner and Chinese Zero to Hero channel links offer a curated playlist selector, starting with beginner material. The playlist IDs were verified against the channels’ public metadata.
+- The three Apple Podcasts shows use Apple’s official embedded player.
+- Five audited websites can open in a sandboxed reader: Hacking Chinese, Mandarin Companion, HelloChinese, Pleco, and Anki’s main site.
+- Du Chinese, The Chairman’s Bao, Preply, and Anki shared decks block framing. Store and book purchase links also remain external. The app never bypasses these restrictions.
+
+Only one embedded resource loads at a time, after a user opens it. Closing the viewer, pressing Escape, or leaving the route removes the iframe and stops its media. The viewer can open over a lesson while its timer continues. Every viewer includes a direct source link; provider restrictions, sign-in, network policies, or regional availability can still prevent playback. Offline entry shows a reconnect/retry state. Third-party media and web pages are streamed, not cached or copied into the PWA.
+
+The implementation follows the existing local design skill workflow: shared theme tokens, a single reusable viewer, safe-area insets, accessible close controls, mobile touch targets, and preserved lesson state. No Sleek connection or generated mockup is used.
+
+Framing checks are recorded in [docs/embed-audit.json](docs/embed-audit.json). Provider contracts: [YouTube players](https://developers.google.com/youtube/player_parameters), [privacy-enhanced embedding](https://support.google.com/youtube/answer/171780), and [Apple Podcasts embeds](https://podcasters.apple.com/support/5619-apple-podcasts-embed-player).
 
 ## A practical beginner routine
 
@@ -110,6 +126,7 @@ python3 -m venv /tmp/mandarin-qa-env
 /tmp/mandarin-qa-env/bin/playwright install chromium
 /tmp/mandarin-qa-env/bin/python tests/browser_test.py
 /tmp/mandarin-qa-env/bin/python tests/update_test.py
+/tmp/mandarin-qa-env/bin/python tests/resources_test.py
 ```
 
-The suite starts its own temporary HTTP server and checks core learner flows, scheduler/data rules, backup handling, microphone cleanup, responsive layouts, and offline use at root and `/mandarin-app/` paths. The update suite also reproduces recovery from a legacy cache while a second tab stays open and checks that ordinary updates preserve unsaved form fields until the user chooses to reload. No development dependencies are shipped.
+The suite starts its own temporary HTTP server and checks core learner flows, scheduler/data rules, backup handling, microphone cleanup, responsive layouts, and offline use at root and `/mandarin-app/` paths. The update suite also reproduces recovery from a legacy cache while a second tab stays open and checks that ordinary updates preserve unsaved form fields until the user chooses to reload. Resource tests isolate provider responses to verify URLs, timestamp handling, nested lessons, cleanup, offline retry, and layout in all three themes; separate live browser checks confirmed provider rendering. No development dependencies are shipped.

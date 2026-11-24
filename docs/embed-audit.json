@@ -1,0 +1,77 @@
+{
+  "checked_on": "2026-11-24",
+  "scope": "Response framing headers and provider player endpoints; source restrictions can change.",
+  "responses": [
+    {
+      "url": "https://duchinese.net/",
+      "status": 200,
+      "x_frame_options": "SAMEORIGIN",
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://www.thechairmansbao.com/",
+      "status": 200,
+      "x_frame_options": "SAMEORIGIN",
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://mandarincompanion.com/",
+      "status": 200,
+      "x_frame_options": null,
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://www.hackingchinese.com/beginner-chinese-listening-practice-what-to-listen-to-and-how/",
+      "status": 200,
+      "x_frame_options": null,
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://apps.ankiweb.net/",
+      "status": 200,
+      "x_frame_options": null,
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://www.hellochinese.cc/",
+      "status": 200,
+      "x_frame_options": null,
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://www.pleco.com/",
+      "status": 200,
+      "x_frame_options": null,
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://preply.com/en/online/chinese-tutors",
+      "status": 200,
+      "x_frame_options": "sameorigin",
+      "frame_ancestors": [
+        "frame-ancestors 'self' www.upward.net"
+      ]
+    },
+    {
+      "url": "https://ankiweb.net/shared/info/132435921",
+      "status": 200,
+      "x_frame_options": "SAMEORIGIN",
+      "frame_ancestors": []
+    },
+    {
+      "url": "https://embed.podcasts.apple.com/ca/podcast/learning-chinese-through-stories/id942258146?theme=dark",
+      "status": 200,
+      "x_frame_options": null,
+      "frame_ancestors": [
+        "frame-ancestors 'self' https: http:"
+      ]
+    }
+  ],
+  "channel_playlists": "Curated from each channel\u2019s public playlists page; course playlist IDs were read from YouTube page metadata.",
+  "live_browser_checked": [
+    "YouTube pronunciation player",
+    "Apple Podcasts show player",
+    "Hacking Chinese reader"
+  ],
+  "playback_limit": "Live checks confirmed player rendering, not playback of every video or podcast."
+}

@@ -21,7 +21,7 @@ jobs:
       - name: Prepare public files
         run: |
           mkdir _site
-          cp index.html styles.css app.js state.js data.js resources.json manifest.webmanifest sw.js _site/
+          cp index.html styles.css app.js resource-viewer.js state.js data.js resources.json manifest.webmanifest sw.js _site/
           cp -R assets _site/assets
           touch _site/.nojekyll
       - name: Configure Pages

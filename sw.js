@@ -1,6 +1,6 @@
 // Bump the cache name whenever a shell asset changes.
-const CACHE = 'little-mandarin-shell-v4';
-const SHELL = ['./', './index.html', './styles.css', './app.js', './state.js', './data.js', './resources.json', './manifest.webmanifest', './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png'];
+const CACHE = 'little-mandarin-shell-v5';
+const SHELL = ['./', './index.html', './styles.css', './app.js', './resource-viewer.js', './state.js', './data.js', './resources.json', './manifest.webmanifest', './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);

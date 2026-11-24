@@ -1,3 +1,4 @@
+import {getEmbed, resourceAction, initResourceViewer} from './resource-viewer.js';
 import {
   lessons,
   tones,
@@ -19,7 +20,11 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({
   '"': '&quot;',
   "'": '&#39;'
 } [c]));
-const external = (url, label, cls = '') => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`;
+const external = (url, label, cls = '') => {
+  const embedded = getEmbed(url);
+  return `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener noreferrer"${embedded ? ` data-resource-url="${esc(url)}" data-resource-title="${esc(label)}"` : ''}>${label}${embedded ? ' ▷' : ' ↗'}</a>`;
+};
+initResourceViewer();
 let storageError = false,
   loadError = false,
   state;
@@ -156,7 +161,7 @@ function renderToday() {
           <div class="phrase-hanzi" lang="zh-Hans">请再说一遍。</div><p class="pinyin">Qǐng zài shuō yī biàn.</p><p class="translation">Please say it again.</p>
           <button class="audio-button" data-say="请再说一遍。">${icon('audio')} Listen</button>
         </section>
-        <a href="#resources" class="reference-link">Pronunciation resources ↗</a>
+        ${external('https://www.youtube.com/watch?v=FlaJ12tmtu4&t=31s', 'Pronunciation video', 'reference-link')}
       </aside>
     </div>`;
 }
@@ -216,11 +221,11 @@ function nextReviewLabel() {
 
 function renderResources() {
   const filtered = resources.filter(r => (resourceFilter === 'All' || r.level === resourceFilter || r.category === resourceFilter) && `${r.title} ${r.note} ${r.category}`.toLowerCase().includes(search.toLowerCase()));
-  return `${intro('Resources', 'Courses, pronunciation, reading, and listening.')}<details><summary>Video sources & timestamps</summary><p>Brian Wiles, ${external('https://www.youtube.com/watch?v=WyehfFj72zY','How to Learn Chinese (Mandarin) On Your Own for FREE')}. Audio was independently transcribed with Whisper base.en and compared with automatic English captions on November 24, 2026. All 26 description links were checked. Transcription is machine-generated, not human-verified.</p><ul><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=30s','00:30 · Core course')} · Choose a consistent learning sequence.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=83s','01:23 · Pronunciation')} · Start pinyin and tones early; seek feedback.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=212s','03:32 · Vocabulary')} · Review with Anki and use Pleco for lookups.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=323s','05:23 · Listening')} · Add harder audio as comprehension grows.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=467s','07:46 · Reading')} · Keep vocabulary aligned; use graded material.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=571s','09:31 · Writing')} · Handwriting is optional; learn pinyin input.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=638s','10:38 · Routine')} · Practise consistently; consider weekly tutoring.</li></ul><p>Our adaptation: a 30-minute beginner routine, easy listening from day one, and optional handwriting. The video’s HSK 1–6 references describe its materials, not a claim about today’s exam framework. Pricing and regional availability can change. Affiliate redirects are replaced with direct links.</p></details><div class="filters" role="group" aria-label="Filter resources">${['Start here','All','Courses','Pronunciation','Listening','Reading','Speaking','Tools','Books','Writing','Later','Optional'].map(f=>`<button class="filter ${resourceFilter===f?'active':''}" data-filter="${f}" aria-pressed="${resourceFilter===f}">${f}</button>`).join('')}</div><label for="resource-search" class="small muted">Find a resource</label><input id="resource-search" class="search-input" type="search" placeholder="Search resources…" value="${esc(search)}"><div id="resource-results" class="cards-grid">${resourceCards(filtered)}</div><p class="muted small spaced">26 links from the video, plus four recommendations. A successful page response does not verify every lesson, shared deck, price, or license. No third-party content is copied into this app.</p>`;
+  return `${intro('Resources', 'Courses, pronunciation, reading, and listening.')}<details><summary>Video sources & timestamps</summary><p>Brian Wiles, ${external('https://www.youtube.com/watch?v=WyehfFj72zY','How to Learn Chinese (Mandarin) On Your Own for FREE')}. Audio was independently transcribed with Whisper base.en and compared with automatic English captions on November 24, 2026. All 26 description links were checked. Transcription is machine-generated, not human-verified.</p><ul><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=30s','00:30 · Core course')} · Choose a consistent learning sequence.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=83s','01:23 · Pronunciation')} · Start pinyin and tones early; seek feedback.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=212s','03:32 · Vocabulary')} · Review with Anki and use Pleco for lookups.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=323s','05:23 · Listening')} · Add harder audio as comprehension grows.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=467s','07:46 · Reading')} · Keep vocabulary aligned; use graded material.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=571s','09:31 · Writing')} · Handwriting is optional; learn pinyin input.</li><li>${external('https://www.youtube.com/watch?v=WyehfFj72zY&t=638s','10:38 · Routine')} · Practise consistently; consider weekly tutoring.</li></ul><p>Our adaptation: a 30-minute beginner routine, easy listening from day one, and optional handwriting. The video’s HSK 1–6 references describe its materials, not a claim about today’s exam framework. Pricing and regional availability can change. Affiliate redirects are replaced with direct links.</p></details><div class="filters" role="group" aria-label="Filter resources">${['Start here','All','Courses','Pronunciation','Listening','Reading','Speaking','Tools','Books','Writing','Later','Optional'].map(f=>`<button class="filter ${resourceFilter===f?'active':''}" data-filter="${f}" aria-pressed="${resourceFilter===f}">${f}</button>`).join('')}</div><label for="resource-search" class="small muted">Find a resource</label><input id="resource-search" class="search-input" type="search" placeholder="Search resources…" value="${esc(search)}"><div id="resource-results" class="cards-grid">${resourceCards(filtered)}</div><p class="muted small spaced">26 links from the video, plus four recommendations. A successful page response does not verify every lesson, shared deck, price, or license. Embedded media stream from their providers and need internet.</p>`;
 }
 
 function resourceCards(items) {
-  return items.length ? items.map(r => `<article class="panel resource-card"><div class="resource-meta"><span class="tag">${r.category}</span><span class="tag ${r.level==='Later'?'warm':''}">${r.level}</span></div><h2>${esc(r.title)}</h2><p>${esc(r.note)}</p><small class="muted">${esc(r.cost)} · ${esc(r.origin)}</small>${external(r.url,'Open resource')}</article>`).join('') : '<p class="empty">No matches. Try another search or filter.</p>';
+  return items.length ? items.map(r => `<article class="panel resource-card"><div class="resource-meta"><span class="tag">${r.category}</span><span class="tag ${r.level==='Later'?'warm':''}">${r.level}</span></div><h2>${esc(r.title)}</h2><p>${esc(r.note)}</p><small class="muted">${esc(r.cost)} · ${esc(r.origin)}</small>${external(r.url, resourceAction(r.url))}</article>`).join('') : '<p class="empty">No matches. Try another search or filter.</p>';
 }
 
 function renderProgress() {
